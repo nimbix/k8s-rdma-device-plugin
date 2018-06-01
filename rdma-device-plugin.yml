@@ -14,6 +14,8 @@ spec:
       labels:
         name: rdma-device-plugin-ds
     spec:
+      nodeSelector:
+        beta.kubernetes.io/arch: amd64
       tolerations:
       # Allow this pod to be rescheduled while the node is in "critical add-ons only" mode.
       # This, along with the annotation above marks this pod as a critical add-on.
@@ -21,7 +23,7 @@ spec:
         operator: Exists
       hostNetwork: true
       containers:
-      - image: carmark/k8s-rdma-device-plugin:latest
+      - image: nimbix/k8s-rdma-device-plugin:latest
         name: rdma-device-plugin-ctr
         args: ["-log-level", "debug"]
         securityContext:

@@ -38,11 +38,11 @@ func main() {
 	devList, err := GetDevices(MasterNetDevice)
 	if err != nil {
 		log.Errorf("Error to get IB device: %v", err)
-		return
+		select {}
 	}
 	if len(devList) == 0 {
 		log.Println("No devices found.")
-		return
+		select {}
 	}
 
 	log.Debugf("RDMA device list: %v", devList)

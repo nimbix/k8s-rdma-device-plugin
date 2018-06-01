@@ -38,11 +38,11 @@ func getAllRdmaDeivces() ([]Device, error) {
 		for _, n := range netDevList {
 			dResource, err := getRdmaDeviceResoure(d.Name)
 			if err != nil {
-				return nil, err
+				continue
 			}
 			nResource, err := getNetDeviceResoure(n)
 			if err != nil {
-				return nil, err
+				continue
 			}
 
 			// the same device
@@ -74,11 +74,11 @@ func getRdmaDeivces(masterNetDevice string) ([]Device, error) {
 		for _, n := range netDevList {
 			dResource, err := getRdmaDeviceResoure(d.Name)
 			if err != nil {
-				return nil, err
+				continue
 			}
 			nResource, err := getNetDeviceResoure(n)
 			if err != nil {
-				return nil, err
+				continue
 			}
 
 			// the same device
