@@ -1,0 +1,7 @@
+FROM ubuntu:xenial
+
+RUN apt-get -y update && apt-get -y install libibverbs1 libmlx4-1 libmlx5-1 && apt-get clean
+
+COPY bin/k8s-rdma-device-plugin /usr/local/bin/
+
+ENTRYPOINT ["k8s-rdma-device-plugin"]
