@@ -8,7 +8,7 @@ import (
 	"golang.org/x/net/context"
 	pluginapi "k8s.io/kubernetes/pkg/kubelet/apis/deviceplugin/v1beta1"
 
-	"github.com/hustcat/k8s-rdma-device-plugin/ibverbs"
+	"github.com/nimbix/k8s-rdma-device-plugin/ibverbs"
 )
 
 const RdmaDeviceRource = "/sys/class/infiniband/%s/device/resource"

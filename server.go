@@ -11,6 +11,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	pluginapi "k8s.io/kubernetes/pkg/kubelet/apis/deviceplugin/v1beta1"
+	"strings"
 )
 
 const (
@@ -168,29 +169,41 @@ func (m *RdmaDevicePlugin) unhealthy(dev *pluginapi.Device) {
 // Allocate which return list of devices.
 func (m *RdmaDevicePlugin) Allocate(ctx context.Context, r *pluginapi.AllocateRequest) (*pluginapi.AllocateResponse, error) {
 	devs := m.devs
-	response := pluginapi.AllocateResponse{}
-
-	log.Debugf("Request IDs: %v", r.DevicesIDs)
+	responses := pluginapi.AllocateResponse{}
 	var devicesList []*pluginapi.DeviceSpec
-	for _, id := range r.DevicesIDs {
-		if !deviceExists(devs, id) {
-			return nil, fmt.Errorf("invalid allocation request: unknown device: %s", id)
+	log.Infof("Entered Allocate()")
+
+	for _, req := range r.ContainerRequests {
+		response := pluginapi.ContainerAllocateResponse{
+			Envs: map[string]string{
+				"RDMA_VISIBLE_DEVICES": strings.Join(req.DevicesIDs, ","),
+			},
 		}
 
-		var devPath string
-		if dev, ok := m.devices[id]; ok {
-			// TODO: to function
-			devPath = fmt.Sprintf("/dev/infiniband/%s", dev.RdmaDevice.DevName)
-		} else {
-			continue
+		log.Debugf("Request IDs: %v", req.DevicesIDs)
+
+		for _, id := range req.DevicesIDs {
+			if !deviceExists(devs, id) {
+				return nil, fmt.Errorf("invalid allocation request: unknown device: %s", id)
+			}
+
+			var devPath string
+			if dev, ok := m.devices[id]; ok {
+				// TODO: to function
+				devPath = fmt.Sprintf("/dev/infiniband/%s", dev.RdmaDevice.DevName)
+			} else {
+				continue
+			}
+
+			ds := &pluginapi.DeviceSpec{
+				ContainerPath: devPath,
+				HostPath:      devPath,
+				Permissions:   "rw",
+			}
+			devicesList = append(devicesList, ds)
 		}
 
-		ds := &pluginapi.DeviceSpec{
-			ContainerPath: devPath,
-			HostPath:      devPath,
-			Permissions:   "rw",
-		}
-		devicesList = append(devicesList, ds)
+		responses.ContainerResponses = append(responses.ContainerResponses, &response)
 	}
 
 	// for /dev/infiniband/rdma_cm
@@ -205,11 +218,57 @@ func (m *RdmaDevicePlugin) Allocate(ctx context.Context, r *pluginapi.AllocateRe
 		})
 	}
 
-	response.Devices = devicesList
+	log.Debugf("Devices list: %v", devicesList)
 
-	return &response, nil
+	//responses.Devices = devicesList
+
+	return &responses, nil
 }
 
+// Allocate which return list of devices.
+//func (m *RdmaDevicePlugin) Allocate(ctx context.Context, r *pluginapi.AllocateRequest) (*pluginapi.AllocateResponse, error) {
+//	devs := m.devs
+//	response := pluginapi.AllocateResponse{}
+//
+//	log.Debugf("Request IDs: %v", r.DevicesIDs)
+//	var devicesList []*pluginapi.DeviceSpec
+//	for _, id := range r.DevicesIDs {
+//		if !deviceExists(devs, id) {
+//			return nil, fmt.Errorf("invalid allocation request: unknown device: %s", id)
+//		}
+//
+//		var devPath string
+//		if dev, ok := m.devices[id]; ok {
+//			// TODO: to function
+//			devPath = fmt.Sprintf("/dev/infiniband/%s", dev.RdmaDevice.DevName)
+//		} else {
+//			continue
+//		}
+//
+//		ds := &pluginapi.DeviceSpec{
+//			ContainerPath: devPath,
+//			HostPath:      devPath,
+//			Permissions:   "rw",
+//		}
+//		devicesList = append(devicesList, ds)
+//	}
+//
+//	// for /dev/infiniband/rdma_cm
+//	rdma_cm_paths := []string{
+//		"/dev/infiniband/rdma_cm",
+//	}
+//	for _, dev := range rdma_cm_paths {
+//		devicesList = append(devicesList, &pluginapi.DeviceSpec{
+//			ContainerPath: dev,
+//			HostPath:      dev,
+//			Permissions:   "rw",
+//		})
+//	}
+//
+//	response.Devices = devicesList
+//
+//	return &response, nil
+//}
 
 func (m *RdmaDevicePlugin) PreStartContainer(context.Context, *pluginapi.PreStartContainerRequest) (*pluginapi.PreStartContainerResponse, error) {
 	return &pluginapi.PreStartContainerResponse{}, nil
@@ -226,7 +285,7 @@ func (m *RdmaDevicePlugin) cleanup() error {
 func (m *RdmaDevicePlugin) healthcheck() {
 	ctx, cancel := context.WithCancel(context.Background())
 
-    var xids chan *pluginapi.Device
+	var xids chan *pluginapi.Device
 	xids = make(chan *pluginapi.Device)
 	go watchXIDs(ctx, m.devs, xids)
 

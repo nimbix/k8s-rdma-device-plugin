@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/hustcat/k8s-rdma-device-plugin/ibverbs"
+	"github.com/nimbix/k8s-rdma-device-plugin/ibverbs"
 )
 
 type Device struct {
