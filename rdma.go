@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 
 	"golang.org/x/net/context"
-	pluginapi "k8s.io/kubernetes/pkg/kubelet/apis/deviceplugin/v1alpha"
+	pluginapi "k8s.io/kubernetes/pkg/kubelet/apis/deviceplugin/v1beta1"
 
 	"github.com/hustcat/k8s-rdma-device-plugin/ibverbs"
 )

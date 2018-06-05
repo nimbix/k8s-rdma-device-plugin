@@ -10,7 +10,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-	pluginapi "k8s.io/kubernetes/pkg/kubelet/apis/deviceplugin/v1alpha"
+	pluginapi "k8s.io/kubernetes/pkg/kubelet/apis/deviceplugin/v1beta1"
 )
 
 const (
@@ -217,7 +217,8 @@ func (m *RdmaDevicePlugin) cleanup() error {
 func (m *RdmaDevicePlugin) healthcheck() {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	xids := make(chan *pluginapi.Device)
+    var xids chan *pluginapi.Device
+	xids = make(chan *pluginapi.Device)
 	go watchXIDs(ctx, m.devs, xids)
 
 	for {
