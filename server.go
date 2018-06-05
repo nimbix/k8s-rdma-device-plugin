@@ -210,6 +210,11 @@ func (m *RdmaDevicePlugin) Allocate(ctx context.Context, r *pluginapi.AllocateRe
 	return &response, nil
 }
 
+
+func (m *NvidiaDevicePlugin) PreStartContainer(context.Context, *pluginapi.PreStartContainerRequest) (*pluginapi.PreStartContainerResponse, error) {
+	return &pluginapi.PreStartContainerResponse{}, nil
+}
+
 func (m *RdmaDevicePlugin) cleanup() error {
 	if err := os.Remove(m.socket); err != nil && !os.IsNotExist(err) {
 		return err
