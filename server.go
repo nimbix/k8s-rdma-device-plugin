@@ -61,6 +61,10 @@ func NewRdmaDevicePlugin(master string) *RdmaDevicePlugin {
 	}
 }
 
+func (m *RdmaDevicePlugin) GetDevicePluginOptions(context.Context, *pluginapi.Empty) (*pluginapi.DevicePluginOptions, error) {
+	return &pluginapi.DevicePluginOptions{}, nil
+}
+
 // dial establishes the gRPC communication with the registered device plugin.
 func dial(unixSocketPath string, timeout time.Duration) (*grpc.ClientConn, error) {
 	c, err := grpc.Dial(unixSocketPath, grpc.WithInsecure(), grpc.WithBlock(),
