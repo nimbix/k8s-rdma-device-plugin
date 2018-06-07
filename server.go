@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"net"
 	"os"
 	"path"
 	"time"
 
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -138,6 +138,7 @@ func (m *RdmaDevicePlugin) Register(kubeletEndpoint, resourceName string) error 
 		Endpoint:     path.Base(m.socket),
 		ResourceName: resourceName,
 	}
+	log.Debugf("Plugin API version: %v", pluginapi.Version)
 
 	_, err = client.Register(context.Background(), reqt)
 	if err != nil {
@@ -191,6 +192,7 @@ func (m *RdmaDevicePlugin) Allocate(ctx context.Context, r *pluginapi.AllocateRe
 			if dev, ok := m.devices[id]; ok {
 				// TODO: to function
 				devPath = fmt.Sprintf("/dev/infiniband/%s", dev.RdmaDevice.DevName)
+				log.Debugf("device path found: %v", devPath)
 			} else {
 				continue
 			}
@@ -202,73 +204,28 @@ func (m *RdmaDevicePlugin) Allocate(ctx context.Context, r *pluginapi.AllocateRe
 			}
 			devicesList = append(devicesList, ds)
 		}
+		log.Debugf("Devices list from DevicesIDs: %v", devicesList)
+
+		// for /dev/infiniband/rdma_cm
+		rdma_cm_paths := []string{
+			"/dev/infiniband/rdma_cm",
+		}
+		for _, dev := range rdma_cm_paths {
+			devicesList = append(devicesList, &pluginapi.DeviceSpec{
+				ContainerPath: dev,
+				HostPath:      dev,
+				Permissions:   "rw",
+			})
+		}
+		log.Debugf("Devices list from manual adds: %v", devicesList)
+
+		response.Devices = devicesList
 
 		responses.ContainerResponses = append(responses.ContainerResponses, &response)
 	}
 
-	// for /dev/infiniband/rdma_cm
-	rdma_cm_paths := []string{
-		"/dev/infiniband/rdma_cm",
-	}
-	for _, dev := range rdma_cm_paths {
-		devicesList = append(devicesList, &pluginapi.DeviceSpec{
-			ContainerPath: dev,
-			HostPath:      dev,
-			Permissions:   "rw",
-		})
-	}
-
-	log.Debugf("Devices list: %v", devicesList)
-
-	//responses.Devices = devicesList
-
 	return &responses, nil
 }
-
-// Allocate which return list of devices.
-//func (m *RdmaDevicePlugin) Allocate(ctx context.Context, r *pluginapi.AllocateRequest) (*pluginapi.AllocateResponse, error) {
-//	devs := m.devs
-//	response := pluginapi.AllocateResponse{}
-//
-//	log.Debugf("Request IDs: %v", r.DevicesIDs)
-//	var devicesList []*pluginapi.DeviceSpec
-//	for _, id := range r.DevicesIDs {
-//		if !deviceExists(devs, id) {
-//			return nil, fmt.Errorf("invalid allocation request: unknown device: %s", id)
-//		}
-//
-//		var devPath string
-//		if dev, ok := m.devices[id]; ok {
-//			// TODO: to function
-//			devPath = fmt.Sprintf("/dev/infiniband/%s", dev.RdmaDevice.DevName)
-//		} else {
-//			continue
-//		}
-//
-//		ds := &pluginapi.DeviceSpec{
-//			ContainerPath: devPath,
-//			HostPath:      devPath,
-//			Permissions:   "rw",
-//		}
-//		devicesList = append(devicesList, ds)
-//	}
-//
-//	// for /dev/infiniband/rdma_cm
-//	rdma_cm_paths := []string{
-//		"/dev/infiniband/rdma_cm",
-//	}
-//	for _, dev := range rdma_cm_paths {
-//		devicesList = append(devicesList, &pluginapi.DeviceSpec{
-//			ContainerPath: dev,
-//			HostPath:      dev,
-//			Permissions:   "rw",
-//		})
-//	}
-//
-//	response.Devices = devicesList
-//
-//	return &response, nil
-//}
 
 func (m *RdmaDevicePlugin) PreStartContainer(context.Context, *pluginapi.PreStartContainerRequest) (*pluginapi.PreStartContainerResponse, error) {
 	return &pluginapi.PreStartContainerResponse{}, nil
