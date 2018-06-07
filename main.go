@@ -47,7 +47,6 @@ func main() {
 
 	log.Debugf("RDMA device list: %v", devList)
 	log.Println("Starting FS watcher.")
-	log.Println("device plugin path: ", pluginapi.DevicePluginPath)
 	watcher, err := newFSWatcher(pluginapi.DevicePluginPath)
 	if err != nil {
 		log.Println("Failed to created FS watcher.")
