@@ -11,7 +11,6 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	pluginapi "k8s.io/kubernetes/pkg/kubelet/apis/deviceplugin/v1beta1"
-	"strings"
 )
 
 const (
@@ -175,11 +174,7 @@ func (m *RdmaDevicePlugin) Allocate(ctx context.Context, r *pluginapi.AllocateRe
 	log.Infof("Entered Allocate()")
 
 	for _, req := range r.ContainerRequests {
-		response := pluginapi.ContainerAllocateResponse{
-			Envs: map[string]string{
-				"RDMA_VISIBLE_DEVICES": strings.Join(req.DevicesIDs, ","),
-			},
-		}
+		response := pluginapi.ContainerAllocateResponse{}
 
 		log.Debugf("Request IDs: %v", req.DevicesIDs)
 

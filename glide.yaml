@@ -1,4 +1,4 @@
-package: github.com/hustcat/k8s-rdma-device-plugin
+package: github.com/nimbix/k8s-rdma-device-plugin
 import:
 - package: github.com/Sirupsen/logrus
 - package: github.com/fsnotify/fsnotify
@@ -7,6 +7,6 @@ import:
   - context
 - package: google.golang.org/grpc
 - package: k8s.io/kubernetes
-  version: v1.9.3
+  version: v1.10.4
   subpackages:
   - pkg/kubelet/apis/deviceplugin/v1alpha
