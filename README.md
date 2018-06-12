@@ -12,25 +12,21 @@ Support is also added to use POWER8 (ppc64le) architecture along with amd64.
 
 ## Kubernetes deployment
 
-Deploying the device plugin means deploying a DaemonSet for the cluster.
-
-With the current images, use a _nodeSelector_ to ensure the machine architecture matches:
+Deploying the device plugin means deploying a DaemonSet for the cluster. The images will be pulled to match the arch of node.
 
 ```
 $ kubectl -n kube-system apply -f rdma-device-plugin.yml
-
-OR
-
-$ kubectl -n kube-system apply -f rdma-device-plugin-ppc64le.yml
 ```
 
-A PPC template, using _nodeSelector_ to select the arch:
+### Sample YAML
+
+A DaemonSet template to select the image and tag:
 
 ```yaml
 apiVersion: extensions/v1beta1
 kind: DaemonSet
 metadata:
-  name: rdma-device-plugin-daemonset-ppc64le
+  name: rdma-device-plugin-daemonset
   namespace: kube-system
 spec:
   template:
@@ -43,8 +39,6 @@ spec:
       labels:
         name: rdma-device-plugin-ds
     spec:
-      nodeSelector:
-        beta.kubernetes.io/arch: ppc64le
       tolerations:
       # Allow this pod to be rescheduled while the node is in "critical add-ons only" mode.
       # This, along with the annotation above marks this pod as a critical add-on.
@@ -52,7 +46,7 @@ spec:
         operator: Exists
       hostNetwork: true
       containers:
-      - image: nimbix/k8s-rdma-device-plugin:ppc64le
+      - image: nimbix/k8s-rdma-device-plugin:1.10
         name: rdma-device-plugin-ctr
         args: ["-log-level", "debug"]
         securityContext:
@@ -68,7 +62,7 @@ spec:
             path: /var/lib/kubelet/device-plugins
 ```
 
-This will require a matching Pod template for leveraging the RDMA plugin as an example:
+This will require a Pod template with correct arch (if ppc64le is desired) for leveraging the RDMA plugin as an example:
 
 ```yaml
 apiVersion: v1
@@ -91,4 +85,4 @@ spec:
 
 ### TODO
 
-* Add manifests for Docker image architecture builds to support _amd64_ and _ppc64le_
+* Update vendor
