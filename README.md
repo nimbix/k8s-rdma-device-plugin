@@ -77,7 +77,7 @@ spec:
       args: ["-c", "sleep 999"]
       securityContext:
         capabilities:
-          add: ["ALL"]
+          add: IPC_LOCK
       resources:
         limits:
           tencent.com/rdma: 1 # requesting 1 RDMA device
