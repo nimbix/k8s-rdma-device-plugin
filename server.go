@@ -16,6 +16,7 @@ import (
 const (
 	defaultResourceName = "tencent.com/rdma"
 	serverSock          = pluginapi.DevicePluginPath + "rdma.sock"
+	knemSysfsName = "/sys/class/misc/knem"
 )
 
 // RdmaDevicePlugin implements the Kubernetes device plugin API
@@ -171,7 +172,6 @@ func (m *RdmaDevicePlugin) Allocate(ctx context.Context, r *pluginapi.AllocateRe
 	devs := m.devs
 	responses := pluginapi.AllocateResponse{}
 	var devicesList []*pluginapi.DeviceSpec
-	log.Infof("Entered Allocate()")
 
 	for _, req := range r.ContainerRequests {
 		response := pluginapi.ContainerAllocateResponse{}
@@ -202,12 +202,8 @@ func (m *RdmaDevicePlugin) Allocate(ctx context.Context, r *pluginapi.AllocateRe
 		log.Debugf("Devices list from DevicesIDs: %v", devicesList)
 
 		// for /dev/infiniband/rdma_cm
-		// Need to get all the devices to enable MPI
 		rdma_cm_paths := []string{
 			"/dev/infiniband/rdma_cm",
-			"/dev/infiniband/umad0",
-			"/dev/infiniband/ucm0",
-			"/dev/infiniband/issm0",
 		}
 		for _, dev := range rdma_cm_paths {
 			devicesList = append(devicesList, &pluginapi.DeviceSpec{
@@ -216,7 +212,25 @@ func (m *RdmaDevicePlugin) Allocate(ctx context.Context, r *pluginapi.AllocateRe
 				Permissions:   "rw",
 			})
 		}
-		log.Debugf("Devices list from manual adds: %v", devicesList)
+
+		// MPI (Intel at least) also requires the use of /dev/knem, add if present
+		if _, err := os.Stat(knemSysfsName); err == nil {
+
+		//for _, pth := range DevKnemPaths {
+		//	devicesList = append(devicesList, &pluginapi.DeviceSpec{
+		//		ContainerPath: pth,
+		//		HostPath:      pth,
+		//		Permissions:   "rw",
+		//	})
+		//}
+			devicesList = append(devicesList, &pluginapi.DeviceSpec{
+				ContainerPath: knemSysfsName,
+				HostPath:      knemSysfsName,
+				Permissions:   "rw",
+			})
+		}
+
+		log.Debugf("Devices list from manual additions: %v", devicesList)
 
 		response.Devices = devicesList
 
