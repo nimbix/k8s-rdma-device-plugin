@@ -202,8 +202,12 @@ func (m *RdmaDevicePlugin) Allocate(ctx context.Context, r *pluginapi.AllocateRe
 		log.Debugf("Devices list from DevicesIDs: %v", devicesList)
 
 		// for /dev/infiniband/rdma_cm
+		// Need to get all the devices to enable MPI
 		rdma_cm_paths := []string{
 			"/dev/infiniband/rdma_cm",
+			"/dev/infiniband/umad0",
+			"/dev/infiniband/ucm0",
+			"/dev/infiniband/issm0",
 		}
 		for _, dev := range rdma_cm_paths {
 			devicesList = append(devicesList, &pluginapi.DeviceSpec{
