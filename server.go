@@ -167,11 +167,12 @@ func (m *RdmaDevicePlugin) unhealthy(dev *pluginapi.Device) {
 	m.health <- dev
 }
 
-// Allocate which return list of devices.
+// Allocate returns the list of devices to expose in the container
 func (m *RdmaDevicePlugin) Allocate(ctx context.Context, r *pluginapi.AllocateRequest) (*pluginapi.AllocateResponse, error) {
 	devs := m.devs
 	responses := pluginapi.AllocateResponse{}
 	var devicesList []*pluginapi.DeviceSpec
+	var knemDeviceName string = "/dev/knem"
 
 	for _, req := range r.ContainerRequests {
 		response := pluginapi.ContainerAllocateResponse{}
@@ -215,22 +216,14 @@ func (m *RdmaDevicePlugin) Allocate(ctx context.Context, r *pluginapi.AllocateRe
 
 		// MPI (Intel at least) also requires the use of /dev/knem, add if present
 		if _, err := os.Stat(knemSysfsName); err == nil {
-
-		//for _, pth := range DevKnemPaths {
-		//	devicesList = append(devicesList, &pluginapi.DeviceSpec{
-		//		ContainerPath: pth,
-		//		HostPath:      pth,
-		//		Permissions:   "rw",
-		//	})
-		//}
+			// Add the device to the list to mount in the container
 			devicesList = append(devicesList, &pluginapi.DeviceSpec{
-				ContainerPath: knemSysfsName,
-				HostPath:      knemSysfsName,
+				ContainerPath: knemDeviceName,
+				HostPath:      knemDeviceName,
 				Permissions:   "rw",
 			})
 		}
-
-		log.Debugf("Devices list from manual additions: %v", devicesList)
+		log.Debugf("Devices list after manual additions: %v", devicesList)
 
 		response.Devices = devicesList
 
