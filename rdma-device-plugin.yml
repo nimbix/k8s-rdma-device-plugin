@@ -21,7 +21,7 @@ spec:
         operator: Exists
       hostNetwork: true
       containers:
-      - image: nimbix/k8s-rdma-device-plugin:1.10
+      - image: nimbix/k8s-rdma-device-plugin:1.11
         imagePullPolicy: Always
         name: rdma-device-plugin-ctr
         args: ["-log-level", "debug"]
