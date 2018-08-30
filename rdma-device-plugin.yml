@@ -26,6 +26,9 @@ spec:
         name: rdma-device-plugin-ctr
         args: ["-log-level", "debug"]
         securityContext:
+          # SELinux option needs to be set for RHEL OS
+          seLinuxOptions:
+            type: "container_runtime_t"
           allowPrivilegeEscalation: false
           capabilities:
             drop: ["ALL"]
