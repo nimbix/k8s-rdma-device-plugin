@@ -16,7 +16,7 @@ import (
 const (
 	defaultResourceName = "tencent.com/rdma"
 	serverSock          = pluginapi.DevicePluginPath + "rdma.sock"
-	knemSysfsName = "/sys/class/misc/knem"
+	knemSysfsName       = "/sys/class/misc/knem"
 )
 
 // RdmaDevicePlugin implements the Kubernetes device plugin API
@@ -172,7 +172,7 @@ func (m *RdmaDevicePlugin) Allocate(ctx context.Context, r *pluginapi.AllocateRe
 	devs := m.devs
 	responses := pluginapi.AllocateResponse{}
 	var devicesList []*pluginapi.DeviceSpec
-	var knemDeviceName string = "/dev/knem"
+	var knemDeviceName = "/dev/knem"
 
 	for _, req := range r.ContainerRequests {
 		response := pluginapi.ContainerAllocateResponse{}
