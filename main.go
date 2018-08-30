@@ -11,15 +11,15 @@ import (
 )
 
 var (
-	MasterNetDevice string = ""
+	MasterNetDevice = ""
 )
 
 func main() {
 	// Parse command-line arguments
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-	flagMasterNetDev := flag.String("master", "", "Master ethernet network device for SRIOV, ex: eth1.")
-	flagLogLevel := flag.String("log-level", "info", "Define the logging level: error, info, debug.")
-	flagResourceName := flag.String("resource-name", defaultResourceName, "Define the default resource name: tencent.com/rdma.")
+	flagMasterNetDev := flag.String("master", "", "Master ethernet network device for SRIOV, ex: eth1")
+	flagLogLevel := flag.String("log-level", "info", "Define the logging level: error, info, debug")
+	flagResourceName := flag.String("resource-name", defaultResourceName, "Define the default resource name: tencent.com/rdma")
 	flag.Parse()
 
 	switch *flagLogLevel {
@@ -33,7 +33,7 @@ func main() {
 		MasterNetDevice = *flagMasterNetDev
 	}
 
-	log.Println("Fetching devices.")
+	log.Println("Fetching devices")
 
 	devList, err := GetDevices(MasterNetDevice)
 	if err != nil {
@@ -41,20 +41,20 @@ func main() {
 		select {}
 	}
 	if len(devList) == 0 {
-		log.Println("No devices found.")
+		log.Println("No devices found")
 		select {}
 	}
 
 	log.Debugf("RDMA device list: %v", devList)
-	log.Println("Starting FS watcher.")
+	log.Println("Starting FS watcher")
 	watcher, err := newFSWatcher(pluginapi.DevicePluginPath)
 	if err != nil {
-		log.Println("Failed to created FS watcher.")
+		log.Println("Failed to created FS watcher")
 		os.Exit(1)
 	}
 	defer watcher.Close()
 
-	log.Println("Starting OS watcher.")
+	log.Println("Starting OS watcher")
 	sigs := newOSWatcher(syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
 	restart := true
@@ -78,7 +78,7 @@ L:
 		select {
 		case event := <-watcher.Events:
 			if event.Name == pluginapi.KubeletSocket && event.Op&fsnotify.Create == fsnotify.Create {
-				log.Printf("inotify: %s created, restarting.", pluginapi.KubeletSocket)
+				log.Printf("inotify: %s created, restarting", pluginapi.KubeletSocket)
 				restart = true
 			}
 
@@ -88,10 +88,10 @@ L:
 		case s := <-sigs:
 			switch s {
 			case syscall.SIGHUP:
-				log.Println("Received SIGHUP, restarting.")
+				log.Println("Received SIGHUP, restarting")
 				restart = true
 			default:
-				log.Printf("Received signal \"%v\", shutting down.", s)
+				log.Printf("Received signal \"%v\", shutting down", s)
 				devicePlugin.Stop()
 				break L
 			}
