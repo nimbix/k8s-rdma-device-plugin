@@ -47,10 +47,13 @@ spec:
         operator: Exists
       hostNetwork: true
       containers:
-      - image: nimbix/k8s-rdma-device-plugin:1.10
+      - image: nimbix/k8s-rdma-device-plugin:1.11
         name: rdma-device-plugin-ctr
         args: ["-log-level", "debug"]
         securityContext:
+          # SELinux option needs to be set for RHEL OS
+          seLinuxOptions:
+            type: "container_runtime_t"
           allowPrivilegeEscalation: false
           capabilities:
             drop: ["ALL"]
@@ -84,6 +87,14 @@ spec:
           tencent.com/rdma: 1 # requesting 1 RDMA device
 ```
 
+### Changelog
+
+* Update to 1.11 Kubernetes
+* Change vendoring from glide to dep
+* Update the plugin container to use bionic instead of xenial, better matching on host OFED & drivers
+* Merge in SELinux fix from PR
+
 ### TODO
 
-* 
+* refactor out the ibverbs code
+* drop the SRIOV and network code
