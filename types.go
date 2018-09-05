@@ -8,3 +8,9 @@ type Device struct {
 	RdmaDevice ibverbs.IbvDevice
 	NetDevice  string
 }
+
+type SimpleRDMADevice struct {
+	Name    string
+	DevName string
+	DevPath string
+}

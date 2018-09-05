@@ -23,9 +23,9 @@ const (
 type RdmaDevicePlugin struct {
 	devs []*pluginapi.Device
 	// ID => Device
-	devices         map[string]Device
-	socket          string
-	masterNetDevice string
+	devices map[string]Device
+	socket  string
+	//masterNetDevice string
 
 	stop   chan interface{}
 	health chan *pluginapi.Device
@@ -34,10 +34,12 @@ type RdmaDevicePlugin struct {
 }
 
 // NewRdmaDevicePlugin returns an initialized RdmaDevicePlugin
-func NewRdmaDevicePlugin(master string) *RdmaDevicePlugin {
-	devices, err := GetDevices(master)
+//func NewRdmaDevicePlugin(master string) *RdmaDevicePlugin {
+func NewRdmaDevicePlugin() *RdmaDevicePlugin {
+	//devices, err := GetDevices(master)
+	devices, err := GetDevices()
 	if err != nil {
-		log.Errorf("Error to get RDMA devices: %v", err)
+		log.Errorf("Error getting RDMA devices: %v", err)
 		return nil
 	}
 
@@ -53,12 +55,12 @@ func NewRdmaDevicePlugin(master string) *RdmaDevicePlugin {
 	}
 
 	return &RdmaDevicePlugin{
-		masterNetDevice: master,
-		socket:          serverSock,
-		devs:            devs,
-		devices:         devMap,
-		stop:            make(chan interface{}),
-		health:          make(chan *pluginapi.Device),
+		//masterNetDevice: master,
+		socket:  serverSock,
+		devs:    devs,
+		devices: devMap,
+		stop:    make(chan interface{}),
+		health:  make(chan *pluginapi.Device),
 	}
 }
 

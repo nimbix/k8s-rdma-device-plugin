@@ -11,9 +11,33 @@ From version 1.9 to version 1.10, the device plugin API changed from [v1alpha](h
 Support is also added to use POWER8 (ppc64le) architecture along with amd64.
 
 
+
+
+
+## Building the plugin 
+
+The plugin binary can be built locally with the following requirements or with the Dockerfiles that wrap the build environment and create the deployable container for Kubernetes
+
+#### Requirements
+
+* libibverbs
+* golang 1.10+
+
+The plugin binary can be built directly on a linux system with: `go build .` or `./build`
+
+The container is built with: `docker build -t nimbix/k8s-rdma-device-plugin-amd64:1.11 .`
+
+### Manually run the plugin
+
+Run the local binary (in bin/): `k8s-rdma-device-plugin --log-level debug`
+
+or run the container locally:
+
+`docker run --security-opt=no-new-privileges --cap-drop=ALL --network=host -it -v /var/lib/kubelet/device-plugins:/var/lib/kubelet/device-plugins --rm nimbix/k8s-rdma-device-plugin:1.11 -log-level debug`
+
 ## Kubernetes deployment
 
-Deploying the device plugin means deploying a DaemonSet for the cluster. The images will be pulled to match the architecture of node.
+Deploying the device plugin means deploying a Kubernetes DaemonSet for the cluster. The images will be pulled to match the architecture of node.
 
 ```
 $ kubectl -n kube-system apply -f rdma-device-plugin.yml
@@ -98,3 +122,4 @@ spec:
 
 * refactor out the ibverbs code
 * drop the SRIOV and network code
+* refactor out the logrus code for normal logging

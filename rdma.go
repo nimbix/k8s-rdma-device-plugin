@@ -11,18 +11,18 @@ import (
 	"github.com/nimbix/k8s-rdma-device-plugin/ibverbs"
 )
 
-const RdmaDeviceRource = "/sys/class/infiniband/%s/device/resource"
-const NetDeviceRource = "/sys/class/net/%s/device/resource"
+const RdmaDeviceResource = "/sys/class/infiniband/%s/device/resource"
+const NetDeviceResource = "/sys/class/net/%s/device/resource"
 
-func GetDevices(masterNetDevice string) ([]Device, error) {
-	if masterNetDevice == "" {
-		return getAllRdmaDeivces()
-	} else {
-		return getRdmaDeivces(masterNetDevice)
-	}
-}
+//func GetDevices(masterNetDevice string) ([]Device, error) {
+//func GetDevices() ([]Device, error) {
+//	return getAllRdmaDevices()
+//
+//}
 
-func getAllRdmaDeivces() ([]Device, error) {
+// Return all the relevant Infiniband RDMA devices, excluding the SR-IOV network devices
+//func getAllRdmaDevices() ([]Device, error) {
+func GetDevices() ([]Device, error) {
 	var devs []Device
 	// Get all RDMA device list
 	ibvDevList, err := ibverbs.IbvGetDeviceList()
@@ -36,47 +36,11 @@ func getAllRdmaDeivces() ([]Device, error) {
 	}
 	for _, d := range ibvDevList {
 		for _, n := range netDevList {
-			dResource, err := getRdmaDeviceResoure(d.Name)
+			dResource, err := getRdmaDeviceResource(d.Name)
 			if err != nil {
 				continue
 			}
-			nResource, err := getNetDeviceResoure(n)
-			if err != nil {
-				continue
-			}
-
-			// the same device
-			if bytes.Compare(dResource, nResource) == 0 {
-				devs = append(devs, Device{
-					RdmaDevice: d,
-					NetDevice:  n,
-				})
-			}
-		}
-	}
-	return devs, nil
-}
-
-func getRdmaDeivces(masterNetDevice string) ([]Device, error) {
-	var devs []Device
-	// Get all RDMA device list
-	ibvDevList, err := ibverbs.IbvGetDeviceList()
-	if err != nil {
-		return nil, err
-	}
-
-	netDevList, err := GetVfNetDevice(masterNetDevice)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, d := range ibvDevList {
-		for _, n := range netDevList {
-			dResource, err := getRdmaDeviceResoure(d.Name)
-			if err != nil {
-				continue
-			}
-			nResource, err := getNetDeviceResoure(n)
+			nResource, err := getNetDeviceResource(n)
 			if err != nil {
 				continue
 			}
@@ -93,14 +57,58 @@ func getRdmaDeivces(masterNetDevice string) ([]Device, error) {
 	return devs, nil
 }
 
-func getRdmaDeviceResoure(name string) ([]byte, error) {
-	resourceFile := fmt.Sprintf(RdmaDeviceRource, name)
+// Parse the output of ibstat -- in hopes that this binary is always matching the OS packages and libs needed --
+//  and return the list of Infiniband devices on the system
+func ParseDevices() ([]SimpleRDMADevice, error) {
+	var devs []SimpleRDMADevice
+
+	return devs, nil
+}
+
+//func getRdmaDeivces(masterNetDevice string) ([]Device, error) {
+//	var devs []Device
+//	// Get all RDMA device list
+//	ibvDevList, err := ibverbs.IbvGetDeviceList()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	netDevList, err := GetVfNetDevice(masterNetDevice)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	for _, d := range ibvDevList {
+//		for _, n := range netDevList {
+//			dResource, err := getRdmaDeviceResource(d.Name)
+//			if err != nil {
+//				continue
+//			}
+//			nResource, err := getNetDeviceResource(n)
+//			if err != nil {
+//				continue
+//			}
+//
+//			// the same device
+//			if bytes.Compare(dResource, nResource) == 0 {
+//				devs = append(devs, Device{
+//					RdmaDevice: d,
+//					NetDevice:  n,
+//				})
+//			}
+//		}
+//	}
+//	return devs, nil
+//}
+
+func getRdmaDeviceResource(name string) ([]byte, error) {
+	resourceFile := fmt.Sprintf(RdmaDeviceResource, name)
 	data, err := ioutil.ReadFile(resourceFile)
 	return data, err
 }
 
-func getNetDeviceResoure(name string) ([]byte, error) {
-	resourceFile := fmt.Sprintf(NetDeviceRource, name)
+func getNetDeviceResource(name string) ([]byte, error) {
+	resourceFile := fmt.Sprintf(NetDeviceResource, name)
 	data, err := ioutil.ReadFile(resourceFile)
 	return data, err
 }

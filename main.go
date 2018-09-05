@@ -10,14 +10,14 @@ import (
 	pluginapi "k8s.io/kubernetes/pkg/kubelet/apis/deviceplugin/v1beta1"
 )
 
-var (
-	MasterNetDevice = ""
-)
+//var (
+//	MasterNetDevice = ""
+//)
 
 func main() {
 	// Parse command-line arguments
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-	flagMasterNetDev := flag.String("master", "", "Master ethernet network device for SRIOV, ex: eth1")
+	//flagMasterNetDev := flag.String("master", "", "Master ethernet network device for SRIOV, ex: eth1")
 	flagLogLevel := flag.String("log-level", "info", "Define the logging level: error, info, debug")
 	flagResourceName := flag.String("resource-name", defaultResourceName, "Define the default resource name: tencent.com/rdma")
 	flag.Parse()
@@ -29,19 +29,20 @@ func main() {
 		log.SetLevel(log.InfoLevel)
 	}
 
-	if *flagMasterNetDev != "" {
-		MasterNetDevice = *flagMasterNetDev
-	}
+	//if *flagMasterNetDev != "" {
+	//	MasterNetDevice = *flagMasterNetDev
+	//}
 
 	log.Println("Fetching devices")
 
-	devList, err := GetDevices(MasterNetDevice)
+	//devList, err := GetDevices(MasterNetDevice)
+	devList, err := GetDevices()
 	if err != nil {
-		log.Errorf("Error to get IB device: %v", err)
+		log.Errorf("Error getting IB devices: %v", err)
 		select {}
 	}
 	if len(devList) == 0 {
-		log.Println("No devices found")
+		log.Println("No IB devices found")
 		select {}
 	}
 
@@ -49,7 +50,7 @@ func main() {
 	log.Println("Starting FS watcher")
 	watcher, err := newFSWatcher(pluginapi.DevicePluginPath)
 	if err != nil {
-		log.Println("Failed to created FS watcher")
+		log.Println("Failed to created FS watcher for device plugin path: ", pluginapi.DevicePluginPath)
 		os.Exit(1)
 	}
 	defer watcher.Close()
@@ -60,6 +61,7 @@ func main() {
 	restart := true
 	var devicePlugin *RdmaDevicePlugin
 
+	// Run this main loop until some event, a signal, breaks out and exits
 L:
 	for {
 		if restart {
@@ -67,7 +69,7 @@ L:
 				devicePlugin.Stop()
 			}
 
-			devicePlugin = NewRdmaDevicePlugin(MasterNetDevice)
+			devicePlugin = NewRdmaDevicePlugin()
 			if err := devicePlugin.Serve(*flagResourceName); err != nil {
 				log.Println("Could not contact Kubelet, retrying. Did you enable the device plugin feature gate?")
 			} else {

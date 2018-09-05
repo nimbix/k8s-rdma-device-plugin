@@ -11,6 +11,8 @@ RUN go install -v ./...
 FROM ubuntu:bionic
 
 COPY --from=build /go/bin/k8s-rdma-device-plugin /usr/local/bin
-RUN apt-get -y update && apt-get -y install libibverbs1 libmlx4-1 libmlx5-1 ibutils ibverbs-utils perftest && apt-get clean
+
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get -y update && apt-get -y install infiniband-diags libibverbs1 libmlx4-1 libmlx5-1 ibutils ibverbs-utils perftest && apt-get clean
 
 ENTRYPOINT ["k8s-rdma-device-plugin"]
